@@ -5,13 +5,13 @@ O objetivo do projeto é resolver o problema da Coordenação de Laboratórios d
 
 ## Equipe
 
-| # | Nome | Papel |
-|---|---|---|
-| 1 | Rayllan Guilherme Brito Ribeiro | Líder |
-| 2 | Guilherme Teles Pacheco | Desenvolvedor |
-| 3 | Pedro Henrique Gomes Dutra | Desenvolvedor |
-| 4 | Lucas Paixão Cardoso Luis | Desenvolvedor |
-| 5 | Refesson da Silva Carvalho | Desenvolvedor |
+| # | Nome | Papel | Responsabilidade |
+|---|---|---|---|
+| 1 | Rayllan Guilherme Brito Ribeiro | Facilitador / Líder | Garante os ritos do Scrum |
+| 2 | Pedro Henrique Gomes Dutra | Pesquisador | Coleta dados com alunos e stakeholders |
+| 3 | Refesson da Silva Carvalho | Analista | Traduz necessidades em tarefas |
+| 4 | Guilherme Teles Pacheco | Tech Lead | Guia o desenvolvimento técnico |
+| 5 | Lucas Paixão Cardoso Luis | Editor / QA | Revisa o código e a documentação |
 
 ## Como rodar o projeto localmente
 
