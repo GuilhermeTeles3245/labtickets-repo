@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title mb-4">Abrir Novo Chamado</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label>Título / Resumo do Problema</label>
+                        <input type="text" name="titulo" class="form-control" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label>Laboratório</label>
+                            <select name="laboratorio" class="form-select" required>
+                                <option value="Lab 1">Lab 1</option>
+                                <option value="Lab 2">Lab 2</option>
+                                <option value="Lab 3">Lab 3</option>
+                                <option value="Redes">Redes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Categoria</label>
+                            <select name="categoria" class="form-select" required>
+                                <option value="Hardware">Problema Físico (Mouse, Monitor, etc)</option>
+                                <option value="Software">Programa faltando/quebrado</option>
+                                <option value="Rede">Sem internet/Acesso lento</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Prioridade</label>
+                            <select name="prioridade" class="form-select" required>
+                                <option value="Baixa">Baixa (Pode esperar)</option>
+                                <option value="Média">Média (Atrapalha a aula)</option>
+                                <option value="Alta">Alta (Impede a aula totalmente)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Descrição Completa</label>
+                        <textarea name="descricao" class="form-control" rows="4" required placeholder="Descreva exatamente qual é a máquina ou detalhe o problema..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Salvar Chamado</button>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

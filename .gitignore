@@ -1,0 +1,31 @@
+# Banco de dados SQLite
+*.db
+*.db-journal
+*.sqlite
+
+# Arquivo de exportação de usuários (gerado automaticamente)
+usuarios_exportados.txt
+
+# Scripts e arquivos temporários de desenvolvimento
+src/extrair_texto.py
+src/texto_do_pdf.txt
+
+# Cache do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+.env
+
+# VS Code
+.vscode/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

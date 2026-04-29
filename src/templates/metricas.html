@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Métricas do Sistema</h4>
+</div>
+
+<!-- Cards de totais -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card novo p-3">
+            <div class="text-muted small">Novos</div>
+            <div class="fs-2 fw-bold">{{ novos }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card andamento p-3">
+            <div class="text-muted small">Em Andamento</div>
+            <div class="fs-2 fw-bold text-primary">{{ andamento }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card concluido p-3">
+            <div class="text-muted small">Concluídos</div>
+            <div class="fs-2 fw-bold text-success">{{ concluidos }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card cancelado p-3">
+            <div class="text-muted small">Cancelados</div>
+            <div class="fs-2 fw-bold text-danger">{{ cancelados }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Por laboratório -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Chamados por Laboratório</div>
+            <div class="card-body">
+                {% for lab, count in por_lab %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>{{ lab }}</span><span class="text-muted">{{ count }}</span>
+                    </div>
+                    <div class="progress" style="height:8px">
+                        <div class="progress-bar bg-primary" style="width:{{ (count / total * 100) if total > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Por categoria -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Chamados por Categoria</div>
+            <div class="card-body">
+                {% for cat, count in por_categoria %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>{{ cat }}</span><span class="text-muted">{{ count }}</span>
+                    </div>
+                    <div class="progress" style="height:8px">
+                        <div class="progress-bar bg-warning" style="width:{{ (count / total * 100) if total > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Por prioridade -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Chamados por Prioridade</div>
+            <div class="card-body">
+                {% for pri, count in por_prioridade %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>
+                            <span class="badge {% if pri == 'Alta' %}bg-danger{% elif pri == 'Média' %}bg-warning text-dark{% else %}bg-success{% endif %} me-1">{{ pri }}</span>
+                        </span>
+                        <span class="text-muted">{{ count }}</span>
+                    </div>
+                    <div class="progress" style="height:8px">
+                        <div class="progress-bar {% if pri == 'Alta' %}bg-danger{% elif pri == 'Média' %}bg-warning{% else %}bg-success{% endif %}"
+                             style="width:{{ (count / total * 100) if total > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

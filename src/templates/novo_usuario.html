@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-person-plus me-1"></i> Novo Usuário
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nome completo</label>
+                        <input type="text" name="nome" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Usuário (login)</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Senha</label>
+                        <input type="password" name="senha" class="form-control" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Perfil</label>
+                        <select name="perfil" class="form-select" required>
+                            <option value="solicitante">Solicitante (Professor/Aluno)</option>
+                            <option value="tecnico">Técnico</option>
+                            <option value="coordenador">Coordenador</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Criar Usuário</button>
+                        <a href="{{ url_for('usuarios') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

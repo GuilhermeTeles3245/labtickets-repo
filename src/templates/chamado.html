@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <!-- Coluna principal -->
+    <div class="col-lg-8">
+        <!-- Cabeçalho do chamado -->
+        <div class="card mb-3">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <div>
+                    <h5 class="mb-0 fw-bold">#{{ chamado.id }} — {{ chamado.titulo }}</h5>
+                    <small class="text-muted">Aberto em {{ chamado.data_abertura.strftime('%d/%m/%Y às %H:%M') }}
+                        por <strong>{{ chamado.solicitante.nome }}</strong></small>
+                </div>
+                <span class="badge fs-6
+                    {% if chamado.status == 'Concluído' %}bg-success
+                    {% elif chamado.status == 'Andamento' %}bg-primary
+                    {% elif chamado.status == 'Cancelado' %}bg-danger
+                    {% else %}bg-secondary{% endif %}">
+                    {{ chamado.status }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-4">
+                        <small class="text-muted d-block">Laboratório</small>
+                        <strong>{{ chamado.laboratorio }}</strong>
+                    </div>
+                    <div class="col-sm-4">
+                        <small class="text-muted d-block">Categoria</small>
+                        <strong>{{ chamado.categoria }}</strong>
+                    </div>
+                    <div class="col-sm-4">
+                        <small class="text-muted d-block">Prioridade</small>
+                        <span class="badge
+                            {% if chamado.prioridade == 'Alta' %}bg-danger
+                            {% elif chamado.prioridade == 'Média' %}bg-warning text-dark
+                            {% else %}bg-success{% endif %}">
+                            {{ chamado.prioridade }}
+                        </span>
+                    </div>
+                </div>
+                <hr>
+                <h6 class="fw-semibold">Descrição</h6>
+                <p class="bg-light p-3 rounded">{{ chamado.descricao }}</p>
+
+                {% if chamado.solucao %}
+                <div class="alert alert-success">
+                    <h6 class="fw-semibold"><i class="bi bi-check-circle-fill me-1"></i> Solução Registrada</h6>
+                    <p class="mb-0">{{ chamado.solucao }}</p>
+                    {% if chamado.data_conclusao %}
+                    <small class="text-muted">Concluído em {{ chamado.data_conclusao.strftime('%d/%m/%Y %H:%M') }}</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Comentários -->
+        <div class="card">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-chat-dots me-1"></i> Comentários ({{ chamado.comentarios|length }})</h6>
+            </div>
+            <div class="card-body">
+                {% for com in chamado.comentarios %}
+                <div class="comment-box position-relative">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <span class="comment-author">{{ com.usuario.nome }}</span>
+                            <span class="comment-date ms-2">{{ com.data.strftime('%d/%m/%Y %H:%M') }}</span>
+                        </div>
+                        {% if perfil == 'coordenador' %}
+                        <form method="POST" action="{{ url_for('deletar_comentario', id=com.id) }}"
+                              onsubmit="return confirm('Apagar este comentário?')" class="d-inline">
+                            <button class="btn btn-link btn-sm btn-delete-sm text-danger p-0" title="Apagar comentário">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    <p class="mb-0 mt-1">{{ com.texto }}</p>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">Nenhum comentário ainda.</p>
+                {% endfor %}
+
+                <!-- Novo comentário -->
+                <form method="POST" class="mt-3">
+                    <input type="hidden" name="acao" value="comentar">
+                    <div class="input-group">
+                        <input type="text" name="comentario" class="form-control"
+                               placeholder="Adicionar comentário..." required>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coluna lateral -->
+    <div class="col-lg-4">
+
+        <!-- Ações do Técnico -->
+        {% if perfil == 'tecnico' %}
+        <div class="card mb-3">
+            <div class="card-body">
+                {% if not chamado.tecnico_id %}
+                <form method="POST">
+                    <input type="hidden" name="acao" value="assumir">
+                    <button class="btn btn-success w-100">
+                        <i class="bi bi-person-check-fill me-1"></i> Assumir este chamado
+                    </button>
+                </form>
+                {% else %}
+                <p class="mb-2 text-muted small">Técnico responsável:</p>
+                <strong>{{ chamado.tecnico.nome }}</strong>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Gerenciar Status (Técnico ou Coordenador) -->
+        {% if perfil in ['tecnico', 'coordenador'] %}
+        <div class="card mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-arrow-repeat me-1"></i> Alterar Status</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="acao" value="status">
+                    <div class="mb-2">
+                        <select name="novo_status" class="form-select">
+                            {% for s in ['Novo','Andamento','Concluído','Cancelado'] %}
+                            <option value="{{ s }}" {{ 'selected' if chamado.status == s }}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2" id="solucao_area" style="{{ '' if chamado.status != 'Concluído' else '' }}">
+                        <label class="form-label small fw-semibold">Solução (obrigatório ao concluir)</label>
+                        <textarea name="solucao" class="form-control form-control-sm" rows="3"
+                                  placeholder="Descreva o que foi feito...">{{ chamado.solucao or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100">
+                        <i class="bi bi-check2-circle me-1"></i> Salvar Status
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Atribuir técnico (Coordenador) -->
+        {% if perfil == 'coordenador' %}
+        <div class="card mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-person-gear me-1"></i> Atribuir Técnico</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('atribuir_tecnico', id=chamado.id) }}">
+                    <select name="tecnico_id" class="form-select mb-2">
+                        <option value="">— Sem técnico —</option>
+                        {% for t in tecnicos %}
+                        <option value="{{ t.id }}" {{ 'selected' if chamado.tecnico_id == t.id }}>{{ t.nome }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-outline-primary w-100 btn-sm">Atribuir</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Info resumida -->
+        <div class="card">
+            <div class="card-body">
+                <h6 class="fw-semibold mb-3">Técnico Responsável</h6>
+                {% if chamado.tecnico %}
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center"
+                         style="width:36px;height:36px;font-size:.85rem">
+                        {{ chamado.tecnico.nome[0] }}
+                    </div>
+                    <div>
+                        <div class="fw-semibold">{{ chamado.tecnico.nome }}</div>
+                        <small class="text-muted">Técnico</small>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted small mb-0"><i class="bi bi-person-dash"></i> Não atribuído</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Voltar ao Dashboard
+    </a>
+</div>
+{% endblock %}
