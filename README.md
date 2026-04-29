@@ -3,6 +3,16 @@
 Este repositório contém o código do MVP e toda a documentação da atividade PBL de Métodos Ágeis com Scrum.
 O objetivo do projeto é resolver o problema da Coordenação de Laboratórios de TI, que recebia chamados por WhatsApp e "de boca", sem histórico ou fila organizada.
 
+## Equipe
+
+| # | Nome | Papel |
+|---|---|---|
+| 1 | Rayllan Guilherme Brito Ribeiro | Líder |
+| 2 | Guilherme Teles Pacheco | Desenvolvedor |
+| 3 | Pedro Henrique Gomes Dutra | Desenvolvedor |
+| 4 | Lucas Paixão Cardoso Luis | Desenvolvedor |
+| 5 | Refesson da Silva Carvalho | Desenvolvedor |
+
 ## Como rodar o projeto localmente
 
 ### 1. Pré-requisitos
