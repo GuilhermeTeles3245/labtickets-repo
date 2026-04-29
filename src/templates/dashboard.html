@@ -89,12 +89,16 @@
                             <i class="bi bi-eye"></i> Ver
                         </a>
                         {% if perfil == 'coordenador' %}
-                        <form method="POST" action="{{ url_for('deletar_chamado', id=c.id) }}" class="d-inline"
-                              onsubmit="return confirm('Remover o chamado #{{ c.id }}?')">
-                            <button class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
+                        <!-- Form oculto — submetido pelo modal de confirmação -->
+                        <form id="form-del-{{ c.id }}" method="POST"
+                              action="{{ url_for('deletar_chamado', id=c.id) }}" class="d-none"></form>
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalDel"
+                                data-chamado-id="{{ c.id }}"
+                                data-chamado-titulo="{{ c.titulo }}">
+                            <i class="bi bi-trash"></i>
+                        </button>
                         {% endif %}
                     </td>
                 </tr>
@@ -111,4 +115,41 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de confirmação de exclusão -->
+<div class="modal fade" id="modalDel" tabindex="-1" aria-labelledby="modalDelLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-danger fw-bold" id="modalDelLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-0">Tem certeza que deseja remover o chamado <strong id="modal-chamado-info"></strong>? Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btn-confirmar-del">
+                    <i class="bi bi-trash me-1"></i>Sim, remover
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('modalDel').addEventListener('show.bs.modal', function(event) {
+        const btn = event.relatedTarget;
+        const id = btn.getAttribute('data-chamado-id');
+        const titulo = btn.getAttribute('data-chamado-titulo');
+        document.getElementById('modal-chamado-info').textContent = '#' + id + ' — ' + titulo;
+        document.getElementById('btn-confirmar-del').onclick = function() {
+            document.getElementById('form-del-' + id).submit();
+        };
+    });
+</script>
 {% endblock %}

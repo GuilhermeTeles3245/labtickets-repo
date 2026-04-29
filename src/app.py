@@ -72,7 +72,7 @@ class Usuario(db.Model):
     senha_hash = db.Column(db.String(200), nullable=False)
     perfil = db.Column(db.String(20), nullable=False)  # solicitante, tecnico, coordenador
     ativo = db.Column(db.Boolean, default=True)
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+    criado_em = db.Column(db.DateTime, default=datetime.now)
 
 class Chamado(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -83,7 +83,7 @@ class Chamado(db.Model):
     prioridade = db.Column(db.String(20), nullable=False)
     status = db.Column(db.String(20), default='Novo')
     solucao = db.Column(db.Text, nullable=True)
-    data_abertura = db.Column(db.DateTime, default=datetime.utcnow)
+    data_abertura = db.Column(db.DateTime, default=datetime.now)
     data_conclusao = db.Column(db.DateTime, nullable=True)
     solicitante_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     tecnico_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
@@ -93,7 +93,7 @@ class Chamado(db.Model):
 class Comentario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.Text, nullable=False)
-    data = db.Column(db.DateTime, default=datetime.utcnow)
+    data = db.Column(db.DateTime, default=datetime.now)
     chamado_id = db.Column(db.Integer, db.ForeignKey('chamado.id'))
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     usuario = db.relationship('Usuario')
@@ -174,7 +174,7 @@ def cadastro():
             db.session.add(novo)
             db.session.commit()
             exportar_usuarios_txt()
-            flash(f'Conta criada com sucesso! Faca login com "{username}".', 'success')
+            flash(f'Conta criada com sucesso! Faça login com "{username}".', 'success')
             return redirect(url_for('login'))
     return render_template('cadastro.html')
 
@@ -257,7 +257,7 @@ def ver_chamado(id):
             if novo_status == 'Andamento' and not chamado.tecnico_id:
                 chamado.tecnico_id = session['user_id']
             if novo_status == 'Concluído':
-                chamado.data_conclusao = datetime.utcnow()
+                chamado.data_conclusao = datetime.now()
                 chamado.solucao = request.form.get('solucao', '').strip()
             db.session.commit()
             flash('Status atualizado!', 'success')
@@ -313,6 +313,9 @@ def atribuir_tecnico(id):
 @login_required
 @perfil_required('coordenador')
 def metricas():
+    from datetime import timedelta, date
+    import json
+
     total = Chamado.query.count()
     novos = Chamado.query.filter_by(status='Novo').count()
     andamento = Chamado.query.filter_by(status='Andamento').count()
@@ -326,10 +329,30 @@ def metricas():
     por_prioridade = db.session.query(Chamado.prioridade, db.func.count(Chamado.id))\
         .group_by(Chamado.prioridade).all()
 
+    # Heatmap: chamados por dia nos últimos 365 dias
+    hoje = date.today()
+    inicio = hoje - timedelta(days=364)
+    raw = db.session.query(
+        db.func.date(Chamado.data_abertura),
+        db.func.count(Chamado.id)
+    ).filter(Chamado.data_abertura >= datetime.combine(inicio, datetime.min.time()))\
+     .group_by(db.func.date(Chamado.data_abertura)).all()
+
+    heatmap_dict = {str(d): c for d, c in raw}
+    # Monta lista ordenada de (date_str, count) para todos os 365 dias
+    heatmap_days = []
+    for i in range(365):
+        d = inicio + timedelta(days=i)
+        ds = str(d)
+        heatmap_days.append({'date': ds, 'count': heatmap_dict.get(ds, 0)})
+
+    heatmap_json = json.dumps(heatmap_days)
+
     return render_template('metricas.html',
         total=total, novos=novos, andamento=andamento,
         concluidos=concluidos, cancelados=cancelados,
-        por_lab=por_lab, por_categoria=por_categoria, por_prioridade=por_prioridade)
+        por_lab=por_lab, por_categoria=por_categoria, por_prioridade=por_prioridade,
+        heatmap_json=heatmap_json)
 
 # ================= GERENCIAR USUÁRIOS (COORDENADOR) =================
 

@@ -32,6 +32,48 @@
     </div>
 </div>
 
+<!-- Heatmap de atividade -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="fw-semibold text-secondary small" id="heatmap-total-label"></span>
+            <div class="d-flex align-items-center gap-1 small text-muted">
+                Menos
+                <span class="heatmap-cell" style="background:#ebedf0;width:12px;height:12px;border-radius:2px;display:inline-block;"></span>
+                <span class="heatmap-cell" style="background:#9be9a8;width:12px;height:12px;border-radius:2px;display:inline-block;"></span>
+                <span class="heatmap-cell" style="background:#40c463;width:12px;height:12px;border-radius:2px;display:inline-block;"></span>
+                <span class="heatmap-cell" style="background:#30a14e;width:12px;height:12px;border-radius:2px;display:inline-block;"></span>
+                <span class="heatmap-cell" style="background:#216e39;width:12px;height:12px;border-radius:2px;display:inline-block;"></span>
+                Mais
+            </div>
+        </div>
+        <div style="overflow-x:auto;">
+            <div style="display:flex; gap:4px; align-items:flex-start;">
+                <!-- Labels dos dias da semana -->
+                <div style="display:flex; flex-direction:column; gap:3px; padding-top:20px; min-width:28px; text-align:right;">
+                    <div style="height:13px;"></div><!-- Seg (oculto) -->
+                    <div style="height:13px; font-size:10px; color:#767676; line-height:13px;">Ter</div>
+                    <div style="height:13px;"></div><!-- Qua (oculto) -->
+                    <div style="height:13px; font-size:10px; color:#767676; line-height:13px;">Qui</div>
+                    <div style="height:13px;"></div><!-- Sex (oculto) -->
+                    <div style="height:13px; font-size:10px; color:#767676; line-height:13px;">Sáb</div>
+                    <div style="height:13px;"></div><!-- Dom (oculto) -->
+                </div>
+                <!-- Grid de semanas -->
+                <div id="heatmap-grid" style="display:flex; flex-direction:row; gap:3px; flex:1;"></div>
+            </div>
+        </div>
+        <!-- Tooltip -->
+        <div id="heatmap-tooltip" style="
+            display:none; position:fixed; z-index:9999;
+            background:#1b1f23; color:#fff; font-size:12px;
+            padding:6px 10px; border-radius:6px;
+            pointer-events:none; white-space:nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,.3);
+        "></div>
+    </div>
+</div>
+
 <div class="row g-3">
     <!-- Por laboratório -->
     <div class="col-md-4">
@@ -94,4 +136,111 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const days = {{ heatmap_json | safe }};
+    const grid = document.getElementById('heatmap-grid');
+    const tooltip = document.getElementById('heatmap-tooltip');
+    const label = document.getElementById('heatmap-total-label');
+
+    const COLORS = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
+    const MONTHS_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const DAYS_PT = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+    // Total de chamados no período
+    const totalPeriodo = days.reduce((s, d) => s + d.count, 0);
+    label.textContent = totalPeriodo + ' chamado' + (totalPeriodo !== 1 ? 's' : '') + ' no último ano';
+
+    // Intensidade de cor
+    const maxCount = Math.max(...days.map(d => d.count), 1);
+    function getColor(count) {
+        if (count === 0) return COLORS[0];
+        const ratio = count / maxCount;
+        if (ratio < 0.25) return COLORS[1];
+        if (ratio < 0.50) return COLORS[2];
+        if (ratio < 0.75) return COLORS[3];
+        return COLORS[4];
+    }
+
+    // Organizar por semanas (colunas)
+    // Primeiro dia do array — calcular qual dia da semana ele cai
+    const firstDate = new Date(days[0].date + 'T00:00:00');
+    const firstDow = firstDate.getDay(); // 0=Dom, 1=Seg...
+
+    // Preenche dias vazios no início para alinhar na grade
+    let allCells = [];
+    for (let i = 0; i < firstDow; i++) allCells.push(null);
+    days.forEach(d => allCells.push(d));
+
+    // Agrupar em semanas de 7
+    let weeks = [];
+    for (let i = 0; i < allCells.length; i += 7) {
+        weeks.push(allCells.slice(i, i + 7));
+    }
+
+    // Rastrear meses para labels
+    let lastMonth = -1;
+
+    weeks.forEach((week, wi) => {
+        const col = document.createElement('div');
+        col.style.cssText = 'display:flex;flex-direction:column;gap:3px;';
+
+        // Label do mês (acima da coluna)
+        const monthLabel = document.createElement('div');
+        monthLabel.style.cssText = 'height:16px;font-size:10px;color:#767676;line-height:16px;';
+
+        // Verifica se a semana tem algum dia válido e se mudou o mês
+        const firstValid = week.find(d => d !== null);
+        if (firstValid) {
+            const m = new Date(firstValid.date + 'T00:00:00').getMonth();
+            if (m !== lastMonth) {
+                monthLabel.textContent = MONTHS_PT[m];
+                lastMonth = m;
+            }
+        }
+        col.appendChild(monthLabel);
+
+        // Células dos dias
+        week.forEach(dayData => {
+            const cell = document.createElement('div');
+            cell.style.cssText = `
+                width:13px; height:13px; border-radius:2px;
+                background:${dayData ? getColor(dayData.count) : 'transparent'};
+                cursor:${dayData ? 'pointer' : 'default'};
+                transition: transform .1s, box-shadow .1s;
+            `;
+
+            if (dayData) {
+                cell.addEventListener('mouseenter', function(e) {
+                    const d = new Date(dayData.date + 'T00:00:00');
+                    const dow = DAYS_PT[d.getDay()];
+                    const formatted = dow + ', ' + d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
+                    const txt = dayData.count === 0
+                        ? 'Nenhum chamado em ' + formatted
+                        : dayData.count + ' chamado' + (dayData.count > 1 ? 's' : '') + ' em ' + formatted;
+                    tooltip.textContent = txt;
+                    tooltip.style.display = 'block';
+                    cell.style.transform = 'scale(1.4)';
+                    cell.style.boxShadow = '0 0 0 1px rgba(0,0,0,.2)';
+                });
+                cell.addEventListener('mousemove', function(e) {
+                    tooltip.style.left = (e.clientX + 14) + 'px';
+                    tooltip.style.top  = (e.clientY - 28) + 'px';
+                });
+                cell.addEventListener('mouseleave', function() {
+                    tooltip.style.display = 'none';
+                    cell.style.transform = '';
+                    cell.style.boxShadow = '';
+                });
+            }
+            col.appendChild(cell);
+        });
+
+        grid.appendChild(col);
+    });
+})();
+</script>
 {% endblock %}

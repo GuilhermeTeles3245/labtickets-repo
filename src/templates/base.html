@@ -92,9 +92,9 @@
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for cat, msg in messages %}
-                        <div class="alert alert-{{ cat }} alert-dismissible fade show py-2" role="alert">
-                            {{ msg }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <div class="alert alert-{{ cat }} fade show py-2 d-flex align-items-center" role="alert">
+                            <span class="me-2">{{ msg }}</span>
+                            <button type="button" class="btn-close ms-auto" style="position:static;" data-bs-dismiss="alert"></button>
                         </div>
                     {% endfor %}
                 {% endif %}

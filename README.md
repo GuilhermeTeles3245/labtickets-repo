@@ -75,3 +75,4 @@ Toda a documentação exigida encontra-se na pasta [`/docs`](/docs):
 | [arquitetura/C4-CONTAINERS.md](docs/arquitetura/C4-CONTAINERS.md)                     | Diagrama C4 — Containers                                          |
 | [seguranca/ASVS_CHECKLIST_MINIMO.md](docs/seguranca/ASVS_CHECKLIST_MINIMO.md)         | Checklist OWASP ASVS                                              |
 | [sprints/](docs/sprints/)                                                             | SPRINT-01 a SPRINT-04 (Planning, Daily, Review, Retro)            |
+| [APRESENTACAO_FINAL.md](docs/APRESENTACAO_FINAL.md)                                   | **Checklist C — Demo, decisões, feedback e métricas**             |
